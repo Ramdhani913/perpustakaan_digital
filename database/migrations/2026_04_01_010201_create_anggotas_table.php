@@ -12,9 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('anggotas', function (Blueprint $table) {
-            $table->id();
+            $table->id();   
+            $table->string('nama');
+            $table->string('email')->unique();
+            $table->string('password');
+            $table->string('image')->nullable();
+            $table->text('alamat');
+            $table->enum('jenis_kelamin', ['laki-laki', 'perempuan'])->default('laki-laki');
+            $table->integer('buku_dipinjam')->unsigned()->default(0);
+            $table->date('tgl_lahir');
+            $table->enum('status', ['aktif', 'nonaktif'])->default('aktif');
             $table->timestamps();
         });
+        
     }
 
     /**

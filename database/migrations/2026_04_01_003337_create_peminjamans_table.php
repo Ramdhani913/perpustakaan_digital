@@ -12,7 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('peminjamans', function (Blueprint $table) {
-            $table->id();
+            $table->id(); 
+            $table->string('peminjam');
+            $table->date('tanggal_peminjaman');
+            $table->date('tanggal_kembali');
+            $table->enum('status_peminjaman', ['dibuat', 'berlangsung', 'selesai'])->default('dibuat');
             $table->timestamps();
         });
     }

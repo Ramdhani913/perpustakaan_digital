@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('dendas', function (Blueprint $table) {
             $table->id();
+            $table->integer('jumlah_hari')->unsigned();
+            $table->double('total_denda')->unsigned();
+            $table->enum('status', ['unpaid', 'paid'])->default('unpaid');
+            $table->double('total_bayar')->unsigned();
+            $table->double('total_kembali')->unsigned();
+            $table->enum('tipe_denda', ['keterlambatan', 'kerusakan', 'hilang'])->default('keterlambatan');
             $table->timestamps();
         });
     }
