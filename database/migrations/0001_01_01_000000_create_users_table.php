@@ -15,8 +15,13 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('image')->nullable();
+            $table->enum('role', ['petugas', 'kepala'])->default('petugas');
+            $table->enum('status', ['aktif', 'nonaktif'])->default('aktif');
+            $table->date('tgl_lahir');
+            $table->string('no_hp');
+            $table->string('jenis_kelamin');
             $table->rememberToken();
             $table->timestamps();
         });

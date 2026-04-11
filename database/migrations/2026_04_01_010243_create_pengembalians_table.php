@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('pengembalians', function (Blueprint $table) {
             $table->id();
+            $table->string('peminjam');
+            $table->date('tanggal_pengembalian');
+            $table->enum('status_pengembalian', ['dibuat', 'diproses', 'selesai'])->default('dibuat');
+            $table->enum('jenis_pelanggaran', ['keterlambatan', 'kerusakan', 'hilang'])->default('keterlambatan');  
             $table->timestamps();
         });
     }
