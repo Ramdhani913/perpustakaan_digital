@@ -5,52 +5,54 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Anggota;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class AnggotaController extends Controller
 {
-
     public function index()
     {
-        $anggota = Anggota::all();
-        return view('anggota.index', compact('anggota'));
+        // Menggunakan latest() agar data terbaru muncul di atas
+        $anggota = Anggota::latest()->get();
+        return view('pages.backend.anggota.index', compact('anggota'));
     }
 
     public function create()
     {
-        return view('anggota.create');
+        return view('pages.backend.anggota.create');
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'nama' => 'required',
-            'email' => 'required|email|unique:anggota,email',
-            'password' => 'required|min:6',
-            'alamat' => 'required',
+            'nama'          => 'required',
+            'email'         => 'required|email|unique:anggotas,email',
+            'password'      => 'required|min:6',
+            'alamat'        => 'required',
             'jenis_kelamin' => 'required|in:laki-laki,perempuan',
-            'tgl_lahir' => 'required|date',
-            'status' => 'required|in:aktif,nonaktif',
-            'image' => 'nullable|image|max:2048',
+            'tgl_lahir'     => 'required|date',
+            'status'        => 'nullable|in:aktif,nonaktif',
+            'image'         => 'nullable|image|max:2048',
+            'buku_dipinjam' => 'nullable',
+            
         ]);
 
-        $anggota = new Anggota();
-        $anggota->nama = $request->nama;
-        $anggota->email = $request->email;
-        $anggota->password = bcrypt($request->password);
-        $anggota->alamat = $request->alamat;
-        $anggota->jenis_kelamin = $request->jenis_kelamin;
-        $anggota->tgl_lahir = $request->tgl_lahir;
-        $anggota->status = $request->status;
-
+        // Logika simpan foto menggunakan Storage ke disk public
+        $imagePath = null;
         if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $filePath = public_path('/images/' . $filename);
-            file_put_contents($filePath, file_get_contents($file));
-            $anggota->image = '/images/' . $filename;
+            $imagePath = $request->file('image')->store('anggota', 'public');
         }
 
-        $anggota->save();
+        Anggota::create([
+            'nama'          => $request->nama,
+            'email'         => $request->email,
+            'password'      => bcrypt($request->password),
+            'alamat'        => $request->alamat,
+            'jenis_kelamin' => $request->jenis_kelamin,
+            'tgl_lahir'     => $request->tgl_lahir,
+            'status'        => $request->status ?? 'aktif',
+            'image'         => $imagePath,
+            'buku_dipinjam' => $request->buku_dipinjam ?? 0,
+        ]);
 
         return redirect()->route('anggota.index')->with('success', 'Anggota berhasil ditambahkan.');
     }
@@ -58,53 +60,48 @@ class AnggotaController extends Controller
     public function show($id)
     {
         $anggota = Anggota::findOrFail($id);
-        return view('anggota.show', compact('anggota'));
+        return view('pages.backend.anggota.show', compact('anggota'));
     }
 
     public function edit($id)
     {
         $anggota = Anggota::findOrFail($id);
-        return view('anggota.edit', compact('anggota'));
+        return view('pages.backend.anggota.edit', compact('anggota'));
     }
 
     public function update(Request $request, $id)
     {
         $request->validate([
-            'nama' => 'required',
-            'email' => 'required|email|unique:anggota,email,' . $id,
-            'password' => 'nullable|min:6',
-            'alamat' => 'required',
+            'nama'          => 'required',
+            'email'         => 'required|email|unique:anggotas,email,' . $id,
+            'password'      => 'nullable|min:6',
+            'alamat'        => 'required',
             'jenis_kelamin' => 'required|in:laki-laki,perempuan',
-            'tgl_lahir' => 'required|date',
-            'status' => 'required|in:aktif,nonaktif',
-            'image' => 'nullable|image|max:2048',
+            'tgl_lahir'     => 'required|date',
+            'status'        => 'required|in:aktif,nonaktif',
+            'image'         => 'nullable|image|max:2048',
         ]);
 
         $anggota = Anggota::findOrFail($id);
-        $anggota->nama = $request->nama;
-        $anggota->email = $request->email;
+        $data = $request->except(['image', 'password']);
+
+        // Logika Update Password (hanya jika diisi)
         if ($request->filled('password')) {
-            $anggota->password = bcrypt($request->password);
+            $data['password'] = bcrypt($request->password);
         }
-        $anggota->alamat = $request->alamat;
-        $anggota->jenis_kelamin = $request->jenis_kelamin;
-        $anggota->tgl_lahir = $request->tgl_lahir;
-        $anggota->status = $request->status;
 
+        // Logika Simpan Foto menggunakan Storage Facade
         if ($request->hasFile('image')) {
-            // Hapus gambar lama jika ada
-            if ($anggota->image) {
-                unlink(public_path($anggota->image));
+            // 1. Hapus gambar lama jika ada di storage
+            if ($anggota->image && Storage::disk('public')->exists($anggota->image)) {
+                Storage::disk('public')->delete($anggota->image);
             }
-            // Simpan gambar baru
-            $file = $request->file('image');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $filePath = public_path('/images/' . $filename);
-            file_put_contents($filePath, file_get_contents($file));
-            $anggota->image = '/images/' . $filename;
+
+            // 2. Upload gambar baru ke folder 'anggota'
+            $data['image'] = $request->file('image')->store('anggota', 'public');
         }
 
-        $anggota->save();
+        $anggota->update($data);
 
         return redirect()->route('anggota.index')->with('success', 'Anggota berhasil diperbarui.');
     }
@@ -112,12 +109,14 @@ class AnggotaController extends Controller
     public function destroy($id)
     {
         $anggota = Anggota::findOrFail($id);
-        if ($anggota->image) {
-            unlink(public_path($anggota->image));
+
+        // Hapus file fisik dari storage disk public
+        if ($anggota->image && Storage::disk('public')->exists($anggota->image)) {
+            Storage::disk('public')->delete($anggota->image);
         }
+
         $anggota->delete();
 
         return redirect()->route('anggota.index')->with('success', 'Anggota berhasil dihapus.');
     }
-
 }
