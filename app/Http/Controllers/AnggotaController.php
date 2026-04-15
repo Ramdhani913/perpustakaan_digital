@@ -9,10 +9,18 @@ use Illuminate\Support\Facades\Storage;
 
 class AnggotaController extends Controller
 {
-    public function index()
+   public function index(Request $request)
     {
-        // Menggunakan latest() agar data terbaru muncul di atas
-        $anggota = Anggota::latest()->get();
+        $search = $request->get('search');
+
+        $anggota = Anggota::when($search, function ($query) use ($search) {
+            return $query->where('nama', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('alamat', 'like', "%{$search}%");
+        })
+        ->latest()
+        ->get();
+
         return view('pages.backend.anggota.index', compact('anggota'));
     }
 

@@ -28,10 +28,24 @@
       </a>
     </li>
 
-    <li class="nav-item">
-      <a class="nav-link" href="https://bootstrapdash.com/demo/polluxui-free/docs/documentation.html" target="_blank">
-        <i class="typcn typcn-mortar-board menu-icon"></i>
-        <span class="menu-title">Documentation</span>
+    <li class="nav-item {{ request()->is('admin/peminjaman*') ? 'active' : '' }}">
+      <a class="nav-link" href="{{ route('admin.peminjaman.index') }}">
+        <i class="typcn typcn-export menu-icon"></i>
+        <span class="menu-title">Peminjaman</span>
+      </a>
+    </li>
+
+    <li class="nav-item {{ request()->is('admin/pengembalian*') ? 'active' : '' }}">
+      <a class="nav-link" href="{{ route('pengembalian.index') }}">
+        <i class="typcn typcn-import menu-icon"></i>
+        <span class="menu-title">Pengembalian</span>
+      </a>
+    </li>
+
+    <li class="nav-item {{ request()->is('admin/laporan*') ? 'active' : '' }}">
+      <a class="nav-link" href="{{ route('admin.laporan.index') }}">
+        <i class="typcn typcn-document-text menu-icon"></i>
+        <span class="menu-title">Laporan</span>
       </a>
     </li>
   </ul>

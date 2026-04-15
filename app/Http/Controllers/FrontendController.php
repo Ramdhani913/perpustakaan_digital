@@ -21,4 +21,17 @@ class FrontendController extends Controller
         return view('pages.frontend.home.detail', compact('buku'));
     }
 
+    public function search(Request $request)
+{
+    $keyword = $request->get('keyword');
+          
+    // Cari buku berdasarkan judul atau pengarang
+    $results = Buku::where('judul', 'like', "%{$keyword}%")
+                    ->orWhere('pengarang', 'like', "%{$keyword}%")
+                    ->latest()
+                    ->get();
+
+    return view('pages.frontend.home.search_results', compact('results', 'keyword'));
+}
+
 }

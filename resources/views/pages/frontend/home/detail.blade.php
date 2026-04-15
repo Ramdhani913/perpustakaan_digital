@@ -89,14 +89,18 @@
 
                 <div class="d-grid d-md-flex gap-3 mt-auto">
                     @if($buku->stok > 0 && $buku->status != 'dipinjam')
-                        <button class="btn btn-dark btn-lg px-5 py-3 fw-bold shadow" style="border-radius: 12px;">
-                            PINJAM BUKU
-                        </button>
+                        <form action="{{ route('pinjam.ajukan', $buku->id) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="btn btn-dark btn-lg px-5 py-3 fw-bold shadow" style="border-radius: 12px;">
+                                PINJAM BUKU
+                            </button>
+                        </form>
                     @else
                         <button class="btn btn-secondary btn-lg px-5 py-3 fw-bold disabled" style="border-radius: 12px;">
                             TIDAK DAPAT DIPINJAM
                         </button>
                     @endif
+                    
                     <button class="btn btn-outline-dark btn-lg px-4 py-3" style="border-radius: 12px;">
                         Baca Review
                     </button>
@@ -105,6 +109,18 @@
         </div>
     </div>
 </div>
+
+@if(session('success'))
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        Swal.fire({
+            title: 'Berhasil!',
+            text: "{{ session('success') }}",
+            icon: 'success',
+            confirmButtonText: 'OK'
+        });
+    </script>
+@endif
 
 <style>
     .ls-1 { letter-spacing: 1px; }

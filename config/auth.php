@@ -34,13 +34,18 @@ return [
     | Supported: "session"
     |
     */
-
-    'guards' => [
-        'web' => [
-            'driver' => 'session',
-            'provider' => 'users',
-        ],
+'guards' => [
+    'web' => [
+        'driver' => 'session',
+        'provider' => 'users',
     ],
+
+    // Tambahkan guard baru untuk anggota
+    'anggota' => [
+        'driver' => 'session',
+        'provider' => 'anggotas', // Nama provider harus sama dengan langkah B
+    ],
+],
 
     /*
     |--------------------------------------------------------------------------
@@ -60,16 +65,22 @@ return [
     */
 
     'providers' => [
-        'users' => [
-            'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', App\Models\User::class),
-        ],
+    'users' => [
+        'driver' => 'eloquent',
+        'model' => App\Models\User::class,
+    ],
 
+    // Tambahkan provider untuk tabel anggotas
+    'anggotas' => [
+        'driver' => 'eloquent',
+        'model' => App\Models\Anggota::class,
+    ],
+],
         // 'users' => [
         //     'driver' => 'database',
         //     'table' => 'users',
         // ],
-    ],
+    
 
     /*
     |--------------------------------------------------------------------------

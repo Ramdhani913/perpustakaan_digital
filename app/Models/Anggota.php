@@ -2,11 +2,32 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+// Perhatikan: Kita mengimpor Authenticatable dari Foundation, bukan Middleware
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Anggota extends Model
+class Anggota extends Authenticatable
 {
-    protected $table = 'angotas';
+    use HasFactory, Notifiable;
+
+    protected $table = 'anggotas';
+    
+    // Karena Anda menggunakan guarded, pastikan tidak ada properti $fillable di file ini
     protected $guarded = [];
-    protected $hidden = ['password', 'remember_token'];
+
+    protected $hidden = [
+        'password', 
+        'remember_token',
+    ];
+
+    // Menghindari error saat login karena password belum di-hash otomatis
+    protected $casts = [
+        'password' => 'hashed',
+    ];
+
+    public function peminjaman()
+    {
+        return $this->hasMany(Peminjaman::class, 'anggota_id');
+    }
 }

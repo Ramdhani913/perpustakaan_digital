@@ -9,11 +9,21 @@ use Illuminate\Support\Facades\Storage; // Gunakan Storage agar konsisten
 
 class UserController extends Controller
 {
-    public function index()
-    {
-        $users = User::all();
-        return view('pages.backend.users.index', compact('users'));
-    }
+    public function index(Request $request)
+{
+    $search = $request->get('search');
+
+    $users = User::when($search, function ($query) use ($search) {
+        return $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('role', 'like', "%{$search}%");
+        })
+    
+    ->latest() // Mengurutkan dari yang terbaru
+    ->get();
+
+    return view('pages.backend.users.index', compact('users'));
+}
 
     public function create()
     {
@@ -52,7 +62,7 @@ class UserController extends Controller
             'image' => $imagePath,
         ]);
 
-        return redirect()->route('users.index')->with('success', 'User berhasil ditambahkan.');
+            return redirect()->route('users.index')->with('success', 'User berhasil ditambahkan.');
     }
 
     public function show($id)

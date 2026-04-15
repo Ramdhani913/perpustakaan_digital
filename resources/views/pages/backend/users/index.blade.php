@@ -6,11 +6,26 @@
         <div class="card">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="card-title">Daftar Pengguna (Users)</h4>
-                    <a href="{{ route('users.create') }}" class="btn btn-primary btn-sm btn-icon-text">
-                        <i class="typcn typcn-plus btn-icon-prepend"></i>
-                        Tambah User
-                    </a>
+                    <h4 class="card-title mb-0">Daftar Pengguna (Users)</h4>
+                    
+                    <div class="d-flex">
+                        {{-- Form Pencarian User --}}
+                        <form action="{{ route('users.index') }}" method="GET" class="mr-2">
+                            <div class="input-group input-group-sm">
+                                <input type="text" name="search" class="form-control" placeholder="Cari nama/email..." value="{{ request('search') }}">
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" type="submit">
+                                        <i class="typcn typcn-zoom"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <a href="{{ route('users.create') }}" class="btn btn-primary btn-sm btn-icon-text">
+                            <i class="typcn typcn-plus btn-icon-prepend"></i>
+                            Tambah User
+                        </a>
+                    </div>
                 </div>
 
                 <div class="table-responsive">
@@ -28,12 +43,12 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($users as $user)
+                            @forelse($users as $user)
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
                                     <td>
                                         @if($user->image)
-                                            <img src="{{ asset('storage/' . $user->image) }}" alt="image" style="width: 40px; height: 40px; border-radius: 100%;">
+                                            <img src="{{ asset('storage/' . $user->image) }}" alt="image" style="width: 40px; height: 40px; border-radius: 100%; object-fit: cover;">
                                         @else
                                             <img src="{{ asset('images/faces/face0.jpg') }}" alt="default" style="width: 40px; height: 40px; border-radius: 100%;">
                                         @endif
@@ -48,7 +63,7 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <span class="text-capitalize">{{ $user->role }}</span>
+                                        <span class="text-capitalize badge badge-info">{{ $user->role }}</span>
                                     </td>
                                     <td>
                                         @if($user->status == 'aktif')
@@ -59,28 +74,34 @@
                                     </td>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <a href="{{ route('users.show', $user->id) }}" class="btn btn-info btn-sm btn-icon-text mr-2">
-                                                Detail
-                                                <i class="typcn typcn-eye-outline btn-icon-append"></i>
+                                            <a href="{{ route('users.show', $user->id) }}" class="btn btn-info btn-sm p-2 mr-1" title="Detail">
+                                                <i class="typcn typcn-eye"></i>
                                             </a>
 
-                                            <a href="{{ route('users.edit', $user->id) }}" class="btn btn-success btn-sm btn-icon-text mr-2">
-                                                Edit
-                                                <i class="typcn typcn-edit btn-icon-append"></i>
+                                            <a href="{{ route('users.edit', $user->id) }}" class="btn btn-success btn-sm p-2 mr-1" title="Edit">
+                                                <i class="typcn typcn-edit"></i>
                                             </a>
                                             
                                             <form action="{{ route('users.destroy', $user->id) }}" method="post" onsubmit="return confirm('Yakin ingin menghapus user ini?')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm btn-icon-text">
-                                                    Delete
-                                                    <i class="typcn typcn-delete-outline btn-icon-append"></i>
+                                                <button type="submit" class="btn btn-danger btn-sm p-2" title="Hapus">
+                                                    <i class="typcn typcn-delete"></i>
                                                 </button>
                                             </form>
                                         </div>
                                     </td>
                                 </tr>
-                            @endforeach
+                            @empty
+                                <tr>
+                                    <td colspan="8" class="text-center p-4">
+                                        Data user tidak ditemukan.
+                                        @if(request('search'))
+                                            <br><a href="{{ route('users.index') }}" class="btn btn-link btn-sm">Reset Pencarian</a>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
