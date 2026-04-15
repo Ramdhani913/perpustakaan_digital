@@ -54,9 +54,18 @@
 
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="form-group">
+                           <div class="form-group">
                                 <label for="stok">Stok Buku</label>
-                                <input type="number" class="form-control" id="stok" name="stok" placeholder="Jumlah Stok" value="{{ old('stok') }}">
+                                <input type="number" 
+                                    class="form-control {{ $errors->has('stok') ? 'border-danger text-danger' : '' }}" 
+                                    id="stok" 
+                                    name="stok" 
+                                    placeholder="Jumlah Stok" 
+                                    value="{{ old('stok') }}" 
+                                    min="1">
+                                @error('stok')
+                                    <small class="text-danger mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -70,13 +79,13 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
+                    {{-- <div class="form-group">
                         <label for="status">Status</label>
                         <select class="form-control" name="status" id="status">
                             <option value="tersedia" {{ old('status') == 'tersedia' ? 'selected' : '' }}>Tersedia</option>
                             <option value="dipinjam" {{ old('status') == 'dipinjam' ? 'selected' : '' }}>Dipinjam</option>
                         </select>
-                    </div>
+                    </div> --}}
 
                     <div class="form-group">
                         <label for="deskripsi">Deskripsi</label>

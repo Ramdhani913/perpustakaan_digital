@@ -5,19 +5,29 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage; // Gunakan Storage agar konsisten
 
 class UserController extends Controller
 {
+    public function index(Request $request)
+{
+    $search = $request->get('search');
 
-    public function index()
-    {
-        $users = User::all();
-        return view('users.index', compact('users'));
-    }
+    $users = User::when($search, function ($query) use ($search) {
+        return $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('role', 'like', "%{$search}%");
+        })
+    
+    ->latest() // Mengurutkan dari yang terbaru
+    ->get();
+
+    return view('pages.backend.users.index', compact('users'));
+}
 
     public function create()
     {
-        return view('users.create');
+        return view('pages.backend.users.create');
     }
 
     public function store(Request $request)
@@ -28,52 +38,50 @@ class UserController extends Controller
             'password' => 'required|min:6',
             'image' => 'nullable|image|max:2048',
             'role' => 'required|in:petugas,kepala',
-            'status' => 'required|in:aktif,nonaktif',
+            'status' => 'nullable|in:aktif,nonaktif',
             'tgl_lahir' => 'required|date',
             'no_hp' => 'required',
             'jenis_kelamin' => 'required|in:laki-laki,perempuan',
         ]);
 
-        $user = new User();
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->password = bcrypt($request->password);
-        $user->role = $request->role;
-        $user->status = $request->status;
-        $user->tgl_lahir = $request->tgl_lahir;
-        $user->no_hp = $request->no_hp;
-        $user->jenis_kelamin = $request->jenis_kelamin;
-
+        // Logika simpan foto menggunakan Storage (mirip BukuController)
+        $imagePath = null;
         if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $filePath = public_path('/images/' . $filename);
-            file_put_contents($filePath, file_get_contents($file));
-            $user->image = '/images/' . $filename;
+            $imagePath = $request->file('image')->store('users', 'public');
         }
 
-        $user->save();
+        User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password), // Password di-bcrypt
+            'role' => $request->role,
+            'status' => $request->status ?? 'aktif',
+            'tgl_lahir' => $request->tgl_lahir,
+            'no_hp' => $request->no_hp,
+            'jenis_kelamin' => $request->jenis_kelamin,
+            'image' => $imagePath,
+        ]);
 
-        return redirect()->route('users.index')->with('success', 'User berhasil ditambahkan.');
+            return redirect()->route('users.index')->with('success', 'User berhasil ditambahkan.');
     }
 
     public function show($id)
     {
         $user = User::findOrFail($id);
-        return view('users.show', compact('user'));
+        return view('pages.backend.users.show', compact('user'));
     }
 
     public function edit($id)
     {
         $user = User::findOrFail($id);
-        return view('users.edit', compact('user'));
+        return view('pages.backend.users.edit', compact('user'));
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, User $user)
     {
         $request->validate([
             'name' => 'required',
-            'email' => 'required|email|unique:users,email,' . $id,
+            'email' => 'required|email|unique:users,email,' . $user->id,
             'password' => 'nullable|min:6',
             'image' => 'nullable|image|max:2048',
             'role' => 'required|in:petugas,kepala',
@@ -83,27 +91,25 @@ class UserController extends Controller
             'jenis_kelamin' => 'required|in:laki-laki,perempuan',
         ]);
 
-        $user = User::findOrFail($id);
-        $user->name = $request->name;
-        $user->email = $request->email;
+        $data = $request->except(['image', 'password']);
+
+        // Logika Update Password (hanya jika diisi)
         if ($request->filled('password')) {
-            $user->password = bcrypt($request->password);
+            $data['password'] = bcrypt($request->password);
         }
-        $user->role = $request->role;
-        $user->status = $request->status;
-        $user->tgl_lahir = $request->tgl_lahir;
-        $user->no_hp = $request->no_hp;
-        $user->jenis_kelamin = $request->jenis_kelamin;
 
+        // Logika Simpan Foto (Mirip BukuController)
         if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $filePath = public_path('/images/' . $filename);
-            file_put_contents($filePath, file_get_contents($file));
-            $user->image = '/images/' . $filename;
+            // 1. Hapus gambar lama jika ada
+            if ($user->image && Storage::disk('public')->exists($user->image)) {
+                Storage::disk('public')->delete($user->image);
+            }
+
+            // 2. Upload gambar baru ke folder 'users'
+            $data['image'] = $request->file('image')->store('users', 'public');
         }
 
-        $user->save();
+        $user->update($data);
 
         return redirect()->route('users.index')->with('success', 'User berhasil diperbarui.');
     }
@@ -111,12 +117,14 @@ class UserController extends Controller
     public function destroy($id)
     {
         $user = User::findOrFail($id);
-        if ($user->image) {
-            unlink(public_path($user->image));
+
+        // Hapus file fisik menggunakan Storage Facade
+        if ($user->image && Storage::disk('public')->exists($user->image)) {
+            Storage::disk('public')->delete($user->image);
         }
+
         $user->delete();
 
         return redirect()->route('users.index')->with('success', 'User berhasil dihapus.');
     }
-
 }

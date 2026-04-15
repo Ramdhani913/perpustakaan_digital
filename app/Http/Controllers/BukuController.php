@@ -11,12 +11,28 @@ class BukuController extends Controller
 {
       
 
-    public function index()
-    {
-        $bukus = Buku::all();
-        return view('pages.backend.buku.index', compact('bukus'));
+   public function index(Request $request)
+{
+    // 1. Ambil input
+    $search = $request->search;
+
+    // 2. Query dasar
+    $query = Buku::query();
+
+    // 3. Jika ada input search, lakukan pencarian
+    if ($search) {
+        $query->where(function($q) use ($search) {
+            $q->where('judul', 'like', "%{$search}%")
+              ->orWhere('pengarang', 'like', "%{$search}%")
+              ->orWhere('penerbit', 'like', "%{$search}%");
+        });
     }
 
+    // 4. Eksekusi
+    $bukus = $query->latest()->get();
+
+    return view('pages.backend.buku.index', compact('bukus'));
+}
     public function create()
     {
         $buku = Buku::all();
@@ -31,13 +47,16 @@ class BukuController extends Controller
             'tahun_terbit' => 'required|date',
             'pengarang' => 'required',
             'kategori' => 'required',
-            'stok' => 'required|integer',
+            'stok' => 'required|integer|min:1',
             'status' => 'nullable|in:tersedia,dipinjam',
             'deskripsi' => 'nullable',
             'kondisi' => 'nullable|in:layak,rusak',
             'gambar' => 'nullable|image|max:2048',
+        ],
+        ['stok.min' => 'Stok buku minimal harus 1 pcs.',
         ]);
 
+      
         
          $gambar = null;
         if ($request->hasFile('gambar')) {
@@ -116,8 +135,8 @@ public function update(Request $request, Buku $buku)
     $buku = Buku::findOrFail($id);
 
     // Gunakan Facades Storage agar konsisten dengan proses Upload
-    if ($buku->gambar && \Storage::disk('public')->exists($buku->gambar)) {
-        \Storage::disk('public')->delete($buku->gambar);
+    if ($buku->gambar && Storage::disk('public')->exists($buku->gambar)) {
+        Storage::disk('public')->delete($buku->gambar);
     }
 
     $buku->delete();

@@ -11,14 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pengembalians', function (Blueprint $table) {
-            $table->id();
-            $table->string('peminjam');
-            $table->date('tanggal_pengembalian');
-            $table->enum('status_pengembalian', ['dibuat', 'diproses', 'selesai'])->default('dibuat');
-            $table->enum('jenis_pelanggaran', ['keterlambatan', 'kerusakan', 'hilang'])->default('keterlambatan');  
-            $table->timestamps();
-        });
+     Schema::create('pengembalians', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('peminjaman_id')->constrained('peminjamans')->onDelete('cascade');
+    $table->date('tanggal_pengembalian');
+    // Tambahkan status_pengembalian untuk alur antrean
+    $table->enum('status_pengembalian', ['diajukan', 'selesai'])->default('diajukan');
+    $table->enum('jenis_pelanggaran', ['tidak_ada', 'kerusakan', 'hilang'])->default('tidak_ada');
+    $table->timestamps();
+    });
     }
 
     /**

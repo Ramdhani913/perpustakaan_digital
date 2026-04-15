@@ -60,7 +60,7 @@
                                     </tr>
                                     <tr>
                                         <td class="font-weight-bold">Stok Tersedia</td>
-                                        <td>: {{ $buku->stok }} unit</td>
+                                        <td>: {{ $buku->stok }} buah</td>
                                     </tr>
                                     <tr>
                                         <td class="font-weight-bold">Kondisi Fisik</td>
