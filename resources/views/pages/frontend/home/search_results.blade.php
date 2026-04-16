@@ -20,11 +20,7 @@
                 <a href="{{ route('frontend.show', $buku->id) }}" class="text-decoration-none text-dark">
                     <div class="card h-100 border-0 shadow-sm p-2 position-relative shadow-hover" style="border-radius: 15px;">
                         
-                        {{-- Wishlist Button (Hanya Visual) --}}
-                        <button type="button" class="btn btn-white shadow-sm rounded-circle position-absolute end-0 m-2 p-1" style="z-index: 10; width: 32px; height: 32px; border: none;">
-                            <small>❤️</small>
-                        </button>
-                        
+                       
                         <div class="p-3 bg-light d-flex align-items-center justify-content-center" style="border-radius: 12px; height: 200px;">
                             <img src="{{ asset('storage/' . $buku->gambar) }}" 
                                  class="img-fluid" 

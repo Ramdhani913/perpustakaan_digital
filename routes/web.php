@@ -35,7 +35,7 @@ Route::middleware(['auth:anggota'])->group(function () {
 
     Route::get('/search', [FrontendController::class, 'search'])->name('frontend.search');
     
-
+      Route::get('/pengembalian/cetak/{id}', [PengembalianController::class, 'cetakStruk'])->name('cetak.struk');
 // --- ADMIN/PETUGAS ROUTES (Backend) ---
     Route::middleware(['auth:web'])->prefix('admin')->group(function () {
         
@@ -73,7 +73,7 @@ Route::middleware(['auth:anggota'])->group(function () {
         
         // // Riwayat pengembalian yang sudah sukses
         // Route::get('/riwayat', [PengembalianController::class, 'riwayat'])->name('index');
-        Route::get('/pengembalian/cetak/{id}', [PengembalianController::class, 'cetakStruk'])->name('denda.cetak');
+      
     });
 
     // Laporan 

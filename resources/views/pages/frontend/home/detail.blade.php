@@ -88,22 +88,24 @@
                 </div>
 
                 <div class="d-grid d-md-flex gap-3 mt-auto">
-                    @if($buku->stok > 0 && $buku->status != 'dipinjam')
+                    {{-- Cek Stok, Status Buku, dan Apakah Anggota sudah meminjam --}}
+                    @if($buku->stok > 0 && $buku->status != 'dipinjam' && !$isPendingOrBorrowed)
                         <form action="{{ route('pinjam.ajukan', $buku->id) }}" method="POST">
                             @csrf
                             <button type="submit" class="btn btn-dark btn-lg px-5 py-3 fw-bold shadow" style="border-radius: 12px;">
                                 PINJAM BUKU
                             </button>
                         </form>
-                    @else
+                        @else
+                        {{-- Tampilkan tombol disable dengan teks yang sesuai kondisi --}}
                         <button class="btn btn-secondary btn-lg px-5 py-3 fw-bold disabled" style="border-radius: 12px;">
-                            TIDAK DAPAT DIPINJAM
+                            @if($borrowed)
+                                SUDAH DIPINJAM/DIAJUKAN
+                            @else
+                                TIDAK DAPAT DIPINJAM
+                            @endif
                         </button>
                     @endif
-                    
-                    <button class="btn btn-outline-dark btn-lg px-4 py-3" style="border-radius: 12px;">
-                        Baca Review
-                    </button>
                 </div>
             </div>
         </div>
@@ -131,3 +133,67 @@
     body { background-color: #fcfcfc; }
 </style>
 @endsection
+
+
+
+
+
+
+
+
+
+
+<div>
+    {{-- public function show($id)
+    {
+        $buku = Buku::findOrFail($id);
+        $anggotaId = Auth::guard('anggota')->id();
+
+        // 1. Cek apakah sudah meminjam buku yang sama (status diajukan/dipinjam)
+        $isPendingOrBorrowed = Peminjaman::where('anggota_id', $anggotaId)
+            ->where('buku_id', $id)
+            ->whereIn('status', ['diajukan', 'dipinjam'])
+            ->exists();
+
+        // 2. Hitung total buku yang sedang dipinjam (limit 3 buku)
+        // Asumsi: Hanya menghitung yang statusnya benar-benar 'dipinjam'
+        $totalBorrowedCount = Peminjaman::where('anggota_id', $anggotaId)
+            ->where('status', 'dipinjam')
+            ->count();
+
+        // Variable penentu apakah limit sudah tercapai
+        $isLimitReached = $totalBorrowedCount >= 3;
+
+        return view('buku.show', compact('buku', 'isPendingOrBorrowed', 'isLimitReached'));
+    } --}}
+
+    {{-- public function show($id)
+    {
+        $buku = Buku::findOrFail($id);
+        $anggotaId = Auth::guard('anggota')->id();
+
+        // 1. Cek duplikasi (diajukan/dipinjam)
+        $isPendingOrBorrowed = Peminjaman::where('anggota_id', $anggotaId)
+            ->where('buku_id', $id)
+            ->whereIn('status', ['diajukan', 'dipinjam'])
+            ->exists();
+
+        // 2. Hitung jumlah buku yang sedang dipinjam (limit 3)
+        $totalBorrowedCount = Peminjaman::where('anggota_id', $anggotaId)
+            ->where('status', 'dipinjam')
+            ->count();
+
+        // 3. Validasi Denda (Maksimal 50.000)
+        // Kita mencari denda melalui relasi: Peminjaman -> Pengembalian -> Denda
+        $totalDenda = Denda::whereHas('pengembalian.peminjaman', function($query) use ($anggotaId) {
+                $query->where('anggota_id', $anggotaId);
+            })
+            ->where('status', 'belum_lunas') // Pastikan hanya menghitung yang belum dibayar
+            ->sum('jumlah_denda');
+
+        $isLimitReached = $totalBorrowedCount >= 3;
+        $isOverFined = $totalDenda >= 50000;
+
+        return view('buku.show', compact('buku', 'isPendingOrBorrowed', 'isLimitReached', 'isOverFined', 'totalDenda'));
+    } --}}
+</div>

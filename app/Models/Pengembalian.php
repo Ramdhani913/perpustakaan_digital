@@ -19,6 +19,6 @@ class Pengembalian extends Model
     }
 
     public function laporan() {
-        return $this->hasOne(Denda::class);
+        return $this->hasOne(Laporan::class);
     }
 }

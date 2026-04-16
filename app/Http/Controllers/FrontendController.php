@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Buku;
+use App\Models\Peminjaman;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class FrontendController extends Controller
 {
@@ -16,10 +18,18 @@ class FrontendController extends Controller
 }
 
      public function show($id)
-    {
-        $buku = Buku::findOrFail($id);
-        return view('pages.frontend.home.detail', compact('buku'));
-    }
+{
+    $buku = Buku::findOrFail($id);
+    $anggotaId = Auth::guard('anggota')->id();
+
+    // Cek apakah anggota sedang meminjam atau mengajukan buku ini
+    $borrowed = Peminjaman::where('anggota_id', $anggotaId)
+        ->where('buku_id', $id)
+        ->whereIn('status_peminjaman', ['diajukan', 'dipinjam'])
+        ->exists();
+
+    return view('pages.frontend.home.detail', compact('buku', 'borrowed'));
+}
 
     public function search(Request $request)
 {
@@ -35,3 +45,5 @@ class FrontendController extends Controller
 }
 
 }
+
+

@@ -39,7 +39,6 @@
                         </div>
                         
                         <div class="mt-4 pt-3 border-top d-flex justify-content-between">
-                            <button class="btn btn-outline-primary btn-sm rounded-pill px-4">Edit Profil</button>
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf
                                 <button type="submit" class="btn btn-dark btn-sm rounded-pill px-4 shadow-sm">LOGOUT</button>
