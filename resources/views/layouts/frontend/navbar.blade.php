@@ -5,6 +5,8 @@
             <div class="col-6 col-md-3">
                 <div class="main-logo">
                     <a href="{{ url('/') }}">
+                        <img src="{{ asset('images/smk.jpeg') }}" alt="logo" class="img-fluid" 
+                             style="max-width: 50px; width: 15vw; min-width: 50px;">
                         <img src="{{ asset('images/logo.jpg') }}" alt="logo" class="img-fluid" 
                              style="max-width: 180px; width: 15vw; min-width: 120px;">
                     </a>

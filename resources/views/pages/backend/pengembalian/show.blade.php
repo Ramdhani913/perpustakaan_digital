@@ -129,7 +129,7 @@
                         <h6 class="font-weight-bold text-success mb-1">Pembayaran Lunas</h6>
                         <p class="text-muted small mb-0">Uang diterima: Rp {{ number_format($pengembalian->denda->nominal_bayar, 0, ',', '.') }}</p>
                     </div>
-                    <a href="{{ route('denda.cetak', $pengembalian->denda->id) }}" target="_blank" class="btn btn-dark btn-icon-text">
+                    <a href="{{ route('cetak.struk', $pengembalian->denda->id) }}" target="_blank" class="btn btn-dark btn-icon-text">
                         <i class="typcn typcn-printer btn-icon-prepend"></i> Cetak Struk
                     </a>
                 </div>

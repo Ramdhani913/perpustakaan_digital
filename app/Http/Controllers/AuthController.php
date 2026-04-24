@@ -78,20 +78,29 @@ public function showLoginAdmin()
     return back()->withErrors(['email' => 'Email atau Password admin salah.']);
 }
 
-    public function logout(Request $request)
-    {
-        $isAdmin = Auth::guard('web')->check();
+   // Logout untuk Anggota
+public function logoutAnggota(Request $request)
+{
+    Auth::guard('anggota')->logout();
 
-        Auth::guard('web')->logout();
-        Auth::guard('anggota')->logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+    // Redirect ke halaman Home Frontend
+    return redirect()->route('frontend.index');
+}
 
-        //redirect berdasarkan tipe akun. jika dmin maka akan reirect ke form login admin, jika anggota maka akan redirect ke form login anggota
-        return $isAdmin ? redirect()->route('admin.login') : redirect('/');
-    }
- 
+// Logout untuk Admin/Petugas
+public function logoutAdmin(Request $request)
+{
+    Auth::guard('web')->logout();
+
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    // Redirect ke halaman Login Admin
+    return redirect()->route('admin.login');
+}
 // ... di dalam class AuthController
 
     public function showRegisterAnggota()

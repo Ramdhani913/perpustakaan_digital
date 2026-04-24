@@ -69,40 +69,37 @@ public function selesai(Request $request, $id)
         'jenis_pelanggaran' => 'required|in:tidak_ada,kerusakan,hilang'
     ]);
 
-    $pengembalian = Pengembalian::with(['peminjaman.buku', 'peminjaman.anggota'])->findOrFail($id);
+    $pengembalian = Pengembalian::findOrFail($id);
     $peminjaman = $pengembalian->peminjaman;
+    $buku = $peminjaman->buku;
 
-    // 1. Logika Tanggal & Keterlambatan
-    $tenggat = \Carbon\Carbon::parse($peminjaman->tenggat_waktu)->startOfDay();
-    $tgl_kembali = \Carbon\Carbon::parse($pengembalian->tanggal_pengembalian)->startOfDay();
+    // 1. Logika Tanggal (Mekanisme Fixed)
+    $tenggat = Carbon::parse($peminjaman->tenggat_waktu)->startOfDay();
+    $tgl_kembali = Carbon::parse($pengembalian->tanggal_pengembalian)->startOfDay();
     
+    // Hitung selisih murni terlebih dahulu
+    $selisih_hari = $tgl_kembali->diffInDays($tenggat, false); 
+    
+    // Mekanisme: Jika selisih negatif (karena tgl_kembali > tenggat), 
+    // kita gunakan abs() untuk menjamin nilai positif 100%
     $hari_telat = 0;
-
-    // Gunakan if yang lebih ketat
     if ($tgl_kembali->gt($tenggat)) {
-        // diffInDays secara default di Carbon menghasilkan nilai absolut (positif)
-        // Namun untuk memastikan, kita paksa perhitungannya hanya jika benar-benar telat
-        $hari_telat = $tgl_kembali->diffInDays($tenggat);
-    } else {
-        $hari_telat = 0; // Tepat waktu atau lebih awal
+        $hari_telat = abs($selisih_hari); 
     }
     
-    // Pastikan hari_telat tidak negatif dengan max(0, ...)
-    $hari_telat = max(0, $hari_telat);
-
     $denda_waktu = $hari_telat * 500; 
 
-    // 2. Logika Denda Fisik
+    // 2. Denda Fisik
     $denda_fisik = 0;
     if ($request->jenis_pelanggaran == 'kerusakan') $denda_fisik = 20000;
     if ($request->jenis_pelanggaran == 'hilang') $denda_fisik = 50000;
 
-    // Total Akumulasi (Pasti Positif)
-    $total_akumulasi = $denda_waktu + $denda_fisik;
+    // Menghasilkan total akumulasi yang dijamin positif
+    $total_akumulasi = (int)$denda_waktu + (int)$denda_fisik;
 
-    // 3. Simpan/Update Tabel Denda
+    // 3. Simpan ke Tabel Denda
     if ($total_akumulasi > 0) {
-        \App\Models\Denda::updateOrCreate(
+        Denda::updateOrCreate(
             ['pengembalian_id' => $pengembalian->id],
             [
                 'jumlah_hari' => $hari_telat, 
@@ -112,15 +109,29 @@ public function selesai(Request $request, $id)
         );
     }
 
-    // Update status pengembalian & peminjaman jangan lupa
-    $pengembalian->update(['status_pengembalian' => 'selesai']);
-    $peminjaman->update(['status_peminjaman' => 'dikembalikan']);
-    
-    // Tambah stok buku kembali
-    $peminjaman->buku->increment('stok');
+    // 4. Update Stok Buku & Status Buku (Jika tidak hilang)
+    if ($request->jenis_pelanggaran != 'hilang') {
+        $buku->increment('stok');
+        $buku->update(['status' => 'tersedia']);
+    }
 
-    return redirect()->back()->with('success', 'Proses pengembalian berhasil diselesaikan.');
-} 
+    // 5. Update data Peminjaman & Pengembalian
+    $pengembalian->update([
+        'status_pengembalian' => 'selesai', 
+        'jenis_pelanggaran' => $request->jenis_pelanggaran
+    ]);
+    
+    $peminjaman->update(['status_peminjaman' => 'selesai']);
+
+    // 6. UPDATE LAPORAN
+    Laporan::where('peminjaman_id', $peminjaman->id)->update([
+        'pengembalian_id' => $pengembalian->id,
+        'total_denda' => $total_akumulasi,
+        'status_keterlambatan' => $hari_telat > 0 ? 'terlambat' : 'tepat_waktu',
+    ]);
+
+    return redirect()->route('pengembalian.index')->with('success', 'Pengembalian berhasil diselesaikan!');
+}
 
 // Fungsi untuk melihat detail pengembalian (View Detail)
     public function show($id)

@@ -3,6 +3,7 @@
 use App\Http\Controllers\AnggotaController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BukuController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FrontendController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\PeminjamanController;
@@ -19,8 +20,15 @@ Route::post('/register', [AuthController::class, 'registerAnggota']);
 Route::get('/admin/login', [AuthController::class, 'showLoginAdmin'])->name('admin.login')->middleware('guest:web');
 Route::post('/admin/login', [AuthController::class, 'loginAdmin']);
 
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+// Logout khusus Anggota (Frontend)
+Route::middleware(['auth:anggota'])->group(function () {
+    Route::post('/logout', [AuthController::class, 'logoutAnggota'])->name('anggota.logout');
+});
 
+// Logout khusus Admin (Backend)
+Route::middleware(['auth:web'])->prefix('admin')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logoutAdmin'])->name('admin.logout');
+});
 
 // --- ANGGOTA ROUTES (Frontend) ---
 Route::middleware(['auth:anggota'])->group(function () {
@@ -35,14 +43,13 @@ Route::middleware(['auth:anggota'])->group(function () {
 
     Route::get('/search', [FrontendController::class, 'search'])->name('frontend.search');
     
-
+      Route::get('/pengembalian/cetak/{id}', [PengembalianController::class, 'cetakStruk'])->name('cetak.struk');
 // --- ADMIN/PETUGAS ROUTES (Backend) ---
     Route::middleware(['auth:web'])->prefix('admin')->group(function () {
         
         // Dashboard
-        Route::get('/dashboard', function () {
-            return view('pages.backend.dashboard.index');
-        })->name('admin.dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+        
 
         // Master Data
         Route::resource('buku', BukuController::class);
@@ -73,7 +80,7 @@ Route::middleware(['auth:anggota'])->group(function () {
         
         // // Riwayat pengembalian yang sudah sukses
         // Route::get('/riwayat', [PengembalianController::class, 'riwayat'])->name('index');
-        Route::get('/pengembalian/cetak/{id}', [PengembalianController::class, 'cetakStruk'])->name('denda.cetak');
+      
     });
 
     // Laporan 
