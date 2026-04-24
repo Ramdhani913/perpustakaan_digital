@@ -15,7 +15,7 @@
           <span class="nav-profile-name">{{ Auth::user()->name }}</span>
         </a>
         <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="profileDropdown">
-          <form method="POST" action="{{ route('logout') }}">
+          <form method="POST" action="{{ route('admin.logout') }}">
             @csrf
             <button type="submit" class="dropdown-item">
               <i class="typcn typcn-eject text-primary"></i> Logout

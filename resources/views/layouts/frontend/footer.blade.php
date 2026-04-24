@@ -4,16 +4,7 @@
 
             <div class="col-lg-4 col-md-6 col-sm-6 mb-4">
                 <div class="footer-menu">
-                    Logo Perpustakaan
-                    {{-- <img src="{{ asset('images/smk.jpeg') }}" alt="logo" style="height: 50px; object-fit: contain;"> --}}
-                    <p class="mt-3 text-muted"></p>
-                    <div class="social-links mt-4">
-                        <ul class="d-flex list-unstyled gap-2">
-                            <li><a href="#" class="btn btn-outline-dark btn-sm rounded-circle"><i class="typcn typcn-social-facebook"></i></a></li>
-                            <li><a href="#" class="btn btn-outline-dark btn-sm rounded-circle"><i class="typcn typcn-social-twitter"></i></a></li>
-                            <li><a href="#" class="btn btn-outline-dark btn-sm rounded-circle"><i class="typcn typcn-social-instagram"></i></a></li>
-                        </ul>
-                    </div>
+                    <img src="{{ asset('images/logo.jpg') }}"style="height: 150px; object-fit: contain;">
                 </div>
             </div>
 

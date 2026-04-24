@@ -89,7 +89,7 @@
 
                 <div class="d-grid d-md-flex gap-3 mt-auto">
                     {{-- Cek Stok, Status Buku, dan Apakah Anggota sudah meminjam --}}
-                    @if($buku->stok > 0 && $buku->status != 'dipinjam' && !$isPendingOrBorrowed)
+                    @if($buku->stok > 0 && $buku->status != 'dipinjam' && !$borrowed)
                         <form action="{{ route('pinjam.ajukan', $buku->id) }}" method="POST">
                             @csrf
                             <button type="submit" class="btn btn-dark btn-lg px-5 py-3 fw-bold shadow" style="border-radius: 12px;">
